@@ -23,7 +23,7 @@ const LoginPage = (props) => {
     const [loading, setLoading] = useState(false);
 
     const { isLoggedIn } = useSelector(state => state.auth);
-    const { message } = useSelector(state => state.message); // Mesajı alın
+    const { message } = useSelector(state => state.message); 
 
     const dispatch = useDispatch();
 
@@ -34,13 +34,20 @@ const LoginPage = (props) => {
         e.preventDefault();
         setLoading(true);
 
+        console.log("Attempting to log in with:", email, password);
+
         if (email && password) {
-            dispatch(login(email, password))
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            dispatch(login(email, password, headers))
                 .then(() => {
+                    console.log("Login successful"); 
                     navigate("/");
-                    window.location.reload();
                 })
-                .catch(() => {
+                .catch((error) => {
+                    console.error("Login failed:", error); 
                     setLoading(false);
                 });
         } else {
@@ -56,16 +63,6 @@ const LoginPage = (props) => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
-                <div className="text-2xl font-semibold">Utravel</div>
-                <div className="space-x-6">
-                    <a href="#" className="hover:underline">Home</a>
-                    <a href="#" className="hover:underline">Help</a>
-                    <a href="#" className="hover:underline">Log in</a>
-                    <a href="#" className="hover:underline">Sign up</a>
-                </div>
-            </nav>
-
             <div className="flex flex-1 bg-gray-100">
                 <div className="hidden md:flex md:w-1/2 lg:w-3/5">
                     <img src={upload} alt="Mountains" className="object-cover w-full h-full" />
@@ -121,49 +118,12 @@ const LoginPage = (props) => {
                             </button>
 
                             <p className="mt-6 text-center">
-                                Don't have an account? <a href="#" className="text-blue-600 hover:underline">Sign Up</a>
+                                Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Sign Up</a>
                             </p>
                         </form>
                     </div>
                 </div>
             </div>
-
-            {/* Footer */}
-            <footer className="bg-gray-800 text-white p-6">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h5 className="font-bold">Passengers</h5>
-                        <ul className="space-y-2">
-                            <li>Flights</li>
-                            <li>Airlines</li>
-                            <li>Hotels</li>
-                            <li>Map</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h5 className="font-bold">Business and Community</h5>
-                        <ul className="space-y-2">
-                            <li>About us</li>
-                            <li>Careers</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h5 className="font-bold">General</h5>
-                        <ul className="space-y-2">
-                            <li>Report Property</li>
-                            <li>Sign Up</li>
-                            <li>Contact Us</li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="mt-4 flex justify-between items-center">
-                    <p className="text-sm">© 2024 Utravel. All rights reserved.</p>
-                    <div className="flex space-x-4">
-                        <a href="#" className="text-gray-400">Privacy Policy</a>
-                        <a href="#" className="text-gray-400">Terms of Service</a>
-                    </div>
-                </div>
-            </footer>
         </div>
     );
 };

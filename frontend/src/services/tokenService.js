@@ -1,12 +1,12 @@
 import axios from "axios";
-import { store } from "../store"; // Import your Redux store
-import { refreshTokenSuccess, logout } from "../actions/auth"; // Update with your actual auth actions
+import { store } from "../store";
+import { refreshTokenSuccess, logout } from "../actions/auth";
 
 const setupAxiosInterceptors = () => {
   axios.interceptors.request.use(
     async (config) => {
       const state = store.getState();
-      const accessToken = state.auth.accessToken; // Get current access token from Redux
+      const accessToken = state.auth.accessToken; 
 
       if (accessToken) {
         config.headers["Authorization"] = `Bearer ${accessToken}`;
@@ -35,7 +35,6 @@ const setupAxiosInterceptors = () => {
 
         if (refreshToken) {
           try {
-            // Attempt to refresh the access token
             const response = await axios.post(
               "http://127.0.0.1:8080/users/token/refresh/",
               {
@@ -43,10 +42,8 @@ const setupAxiosInterceptors = () => {
               }
             );
 
-            // Update the access token in Redux
             store.dispatch(refreshTokenSuccess(response.data.access));
 
-            // Retry the original request with the new access token
             axios.defaults.headers.common[
               "Authorization"
             ] = `Bearer ${response.data.access}`;
@@ -55,7 +52,6 @@ const setupAxiosInterceptors = () => {
             ] = `Bearer ${response.data.access}`;
             return axios(originalRequest);
           } catch (error) {
-            // If refresh fails, log the user out
             store.dispatch(logout());
             return Promise.reject(error);
           }

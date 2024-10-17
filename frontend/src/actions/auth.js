@@ -11,59 +11,58 @@ import {
 import AuthService from "../services/auth.service";
 import { setAuthToken } from "../common/setAuthToken";
 
-export const register = (username, email, password) => (dispatch) => {
-  return AuthService.register(username, email, password).then(
-    (response) => {
-      dispatch({
-        type: REGISTER_SUCCESS,
-      });
+export const register =
+  (username, email, password, password2, first_name, last_name, phone) =>
+  (dispatch) => {
+    return AuthService.register(
+      username,
+      email,
+      password,
+      password2,
+      first_name,
+      last_name,
+      phone
+    ).then(
+      (response) => {
+        dispatch({
+          type: REGISTER_SUCCESS,
+        });
 
-      dispatch({
-        type: SET_MESSAGE,
-        payload: response.data.message,
-      });
+        dispatch({
+          type: SET_MESSAGE,
+          payload: response.data.message,
+        });
 
-      return Promise.resolve();
-    },
-    (error) => {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
+        return Promise.resolve();
+      },
+      (error) => {
+        const message =
+          (error.response &&
+            error.response.data &&
+            error.response.data.message) ||
+          error.message ||
+          error.toString();
 
-      dispatch({
-        type: REGISTER_FAIL,
-      });
+        dispatch({
+          type: REGISTER_FAIL,
+        });
 
-      dispatch({
-        type: SET_MESSAGE,
-        payload: message,
-      });
+        dispatch({
+          type: SET_MESSAGE,
+          payload: message,
+        });
 
-      return Promise.reject();
-    }
-  );
-};
-
-export const login = (email, password) => (dispatch) => {
-  return AuthService.login(email, password).then(
-    (data) => {
-      if (!data || !data.access_token || !data.refresh_token) {
-        throw new Error("Invalid login response. Token data is missing.");
+        return Promise.reject();
       }
+    );
+  };
 
-      const { access_token, refresh_token } = data;
-
-      localStorage.setItem("access_token", access_token);
-      localStorage.setItem("refresh_token", refresh_token);
-
-      setAuthToken(access_token);
-
+export const login = (email, password, headers) => (dispatch) => {
+  return AuthService.login(email, password, headers).then(
+    (data) => {
       dispatch({
         type: LOGIN_SUCCESS,
-        payload: { user: data },
+        payload: { user: data.user, token: data.token },
       });
 
       return Promise.resolve();
@@ -80,16 +79,10 @@ export const login = (email, password) => (dispatch) => {
         type: LOGIN_FAIL,
       });
 
-      dispatch({
-        type: SET_MESSAGE,
-        payload: message,
-      });
-
-      return Promise.reject();
+      return Promise.reject(message);
     }
   );
 };
-
 
 export const refreshTokenSuccess = (newAccessToken) => ({
   type: REFRESH_TOKEN_SUCCESS,

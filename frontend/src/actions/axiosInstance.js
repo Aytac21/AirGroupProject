@@ -21,23 +21,11 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem("access_token");
-    if (accessToken) {
-      config.headers["Authorization"] = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if error is due to token expiration
     if (error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -63,7 +51,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${process.env.REACT_APP_API_URL}/token/refresh/`,
+          `http://127.0.0.1:8080/users/token/refresh/`,
           {
             refresh_token: refreshToken,
           }
@@ -72,11 +60,9 @@ axiosInstance.interceptors.response.use(
         const { access_token } = data;
         localStorage.setItem("access_token", access_token);
         store.dispatch(refreshTokenSuccess(access_token));
-
-        axiosInstance.defaults.headers.common[
+        axiosInstance.defaults.headers[
           "Authorization"
         ] = `Bearer ${access_token}`;
-
         processQueue(null, access_token);
 
         return axiosInstance(originalRequest);

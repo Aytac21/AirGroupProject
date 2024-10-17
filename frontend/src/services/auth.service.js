@@ -3,12 +3,40 @@ import axios from "axios";
 const API_URL = "http://127.0.0.1:8080/users/";
 import axiosInstance from "../actions/axiosInstance";
 
-const register = (username, email, password) => {
-  return axios.post(API_URL + "register", {
-    username,
-    email,
-    password,
-  });
+const register = (
+  username,
+  email,
+  password,
+  password2,
+  first_name,
+  last_name,
+  phone
+) => {
+  return axios
+    .post(
+      API_URL + "register/",
+      {
+        username,
+        email,
+        first_name,
+        last_name,
+        phone,
+        password,
+        password2,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Registration failed", error);
+      throw error;
+    });
 };
 
 const refreshAccessToken = (refresh_token) => {
@@ -38,10 +66,18 @@ const scheduleTokenRefresh = (refresh_token) => {
 
 const login = (email, password) => {
   return axiosInstance
-    .post(API_URL + "login/", {
-      email,
-      password,
-    })
+    .post(
+      API_URL + "login/",
+      {
+        email,
+        password,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
     .then((response) => {
       if (response.data.access_token && response.data.refresh_token) {
         localStorage.setItem("access_token", response.data.access_token);

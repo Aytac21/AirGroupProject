@@ -33,7 +33,7 @@ const setupInterceptors = (store) => {
 
         try {
           await store.dispatch(refreshAccessToken());
-          return axios(originalRequest); // Yenilənmiş token ilə sorğunu təkrarla
+          return axios(originalRequest);
         } catch (err) {
           return Promise.reject(err);
         }
