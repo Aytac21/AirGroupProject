@@ -1,0 +1,25 @@
+# version: '3'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: core_db
+      POSTGRES_USER: core_user
+      POSTGRES_PASSWORD: DXVpufXDgB9UK2Zf24rFqNI9BFLUoBROPiyQ3e5LqGeUtVB22FQkLsz9ria8L251d
+      POSTGRES_HOST: db
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+  web:
+    build: .
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
