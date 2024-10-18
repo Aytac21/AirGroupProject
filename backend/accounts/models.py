@@ -5,7 +5,6 @@ from django.contrib.auth.models import Permission
 from rest_framework_simplejwt.tokens import RefreshToken
 from .validators import validate_phone_number
 
-
 AUTH_PROVIDERS = {'email': 'email'}
 
 

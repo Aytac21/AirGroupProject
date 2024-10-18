@@ -46,6 +46,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://localhost:8080',
     "http://localhost:3000",
+    'http://127.0.0.1:8080'
 ]
 
 SESSION_COOKIE_SAMESITE = 'None'
@@ -119,6 +120,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:5173',
     'http://localhost:8080',
     "http://localhost:3000",
+    ''
 ]
 
 ACCESS_CONTROL_ALLOW_ORIGIN = ['*']

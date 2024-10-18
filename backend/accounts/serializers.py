@@ -11,7 +11,6 @@ from django.urls import reverse
 from .utils import send_normal_email
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError, AccessToken
 from rest_framework.authtoken.models import Token
-from datetime import timedelta
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -39,7 +38,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name'),
             password=validated_data.get('password'),
-            username=validated_data.get('username')
+            username=validated_data.get('username'),
+            phone=validated_data.get('phone')
         )
         return user
 
@@ -75,7 +75,6 @@ class LoginSerializer(serializers.ModelSerializer):
         }
 
 
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
 
@@ -83,25 +82,31 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         fields = ['email']
 
     def validate(self, attrs):
-
         email = attrs.get('email')
-        if User.objects.filter(email=email).exists():
-            user = User.objects.get(email=email)
-            uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
-            token = PasswordResetTokenGenerator().make_token(user)
-            request = self.context.get('request')
-            current_site = get_current_site(request).domain
-            relative_link = reverse(
-                'reset-password-confirm', kwargs={'uidb64': uidb64, 'token': token})
-            abslink = f"http://{current_site}{relative_link}"
-            print(abslink)
-            email_body = f"Hi {user.first_name} use the link below to reset your password {abslink}"
-            data = {
-                'email_body': email_body,
-                'email_subject': "Reset your Password",
-                'to_email': user.email
-            }
-            send_normal_email(data)
+        if not User.objects.filter(email=email).exists():
+            raise ValidationError(
+                "Bu e-poçt ünvanı ilə qeydiyyatdan keçilməyib.")
+
+        user = User.objects.get(email=email)
+
+        OneTimePassword.objects.filter(user=user).delete()
+
+        otp = get_random_string(length=4, allowed_chars='0123456789')
+        OneTimePassword.objects.create(user=user, otp=otp)
+
+        email_body = f"Hi {user.first_name}, use the following OTP code to reset your password: {otp}"
+        data = {
+            'email_body': email_body,
+            'email_subject': "OTP code to reset the password",
+            'to_email': user.email
+        }
+        send_mail(
+            data['email_subject'],
+            data['email_body'],
+            'no-reply@yourdomain.com',
+            [data['to_email']],
+            fail_silently=False,
+        )
 
         return super().validate(attrs)
 
@@ -186,18 +191,6 @@ class VerifyUserEmailSerializer(serializers.Serializer):
     otp = serializers.CharField(max_length=6)
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    profil_picture = serializers.ImageField(
-        allow_empty_file=True, required=False)
-
-    class Meta:
-        model = User
-        fields = [
-            'id', 'email', 'first_name', 'last_name', 'phone', 'username',
-            'profil_picture'
-        ]
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -223,8 +216,8 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             'username': {'required': False, 'allow_blank': True, 'allow_null': True},
             'password': {'required': False},
             'password2': {'required': False},
-            'first_name': {'read_only': True},
-            'last_name': {'read_only': True},
+            'first_name': {'read_only': False},
+            'last_name': {'read_only': False},
         }
 
     def validate(self, data):

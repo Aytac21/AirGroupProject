@@ -2,7 +2,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from .models import OneTimePassword, User
 from .serializers import *
-from rest_framework import status, generics, permissions
+from rest_framework import status, generics
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -13,7 +13,6 @@ from rest_framework.views import APIView
 from .serializers import UserSerializer
 from rest_framework.filters import SearchFilter
 from django.db.models import Q
-from rest_framework.pagination import PageNumberPagination
 from .models import OneTimePassword
 from .utils import send_generated_otp_to_email
 from django_filters.rest_framework import DjangoFilterBackend
@@ -141,45 +140,6 @@ def delete_user(request, user_id):
     return HttpResponse("User and related OneTimePassword deleted successfully")
 
 
-class ProfileView(generics.UpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = ProfileSerializer
-
-    def get_object(self):
-        user = User.objects.get(id=self.request.user.id)
-        return user
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        data = request.data.copy()  # Veriyi kopyala
-
-        if data.get('profil_picture') in [None, '']:
-            data.pop('profil_picture', None)
-
-        serializer = self.get_serializer(
-            instance, data=data, partial=kwargs.get('partial', True))
-        if not serializer.is_valid():
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
-
-
-class ProfileRetrieveView(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = ProfileSerializer
-
-    def get_object(self):
-        return self.request.user
-
-
 class UserListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
@@ -219,10 +179,6 @@ class DeleteUserView(APIView):
         user = get_object_or_404(User, id=user_id)
         user.delete()
         return Response({"mesaj": "İstifadəçi uğurla silindi."}, status=status.HTTP_204_NO_CONTENT)
-
-# class UserFilterListView(generics.ListAPIView):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
 
 
 class UserDetailView(generics.RetrieveAPIView):
