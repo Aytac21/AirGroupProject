@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import upload from "../assets/image 1.png";
 import { useDispatch } from 'react-redux';
 import { register } from '../actions/auth';
@@ -112,7 +112,7 @@ function SignUp() {
                         </button>
                     </form>
                     <p className="text-center">
-                        Already have an account? <a href="#" className="text-blue-600">Log In</a>
+                        Already have an account? <a href="/login" className="text-blue-600">Log In</a>
                     </p>
                 </div>
             </div>

@@ -9,6 +9,8 @@ import {
 } from "./types";
 
 import AuthService from "../services/auth.service";
+import axios from "axios";
+
 import { setAuthToken } from "../common/setAuthToken";
 
 export const register =
@@ -82,6 +84,28 @@ export const login = (email, password, headers) => (dispatch) => {
       return Promise.reject(message);
     }
   );
+};
+
+export const refreshToken = () => async (dispatch) => {
+  try {
+    const refreshToken = localStorage.getItem("refresh_token");
+    const response = await axios.post(
+      "http://127.0.0.1:8080/users/token/refresh/",
+      {
+        refresh: refreshToken,
+      }
+    );
+    const { access } = response.data;
+
+    localStorage.setItem("access_token", access);
+    dispatch({
+      type: REFRESH_TOKEN_SUCCESS,
+      payload: access,
+    });
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    dispatch(logout());
+  }
 };
 
 export const refreshTokenSuccess = (newAccessToken) => ({
